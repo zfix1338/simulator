@@ -16,12 +16,17 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: '11'
-          distribution: 'temurin'  # Specify the JDK distribution
+          distribution: 'temurin'
 
       - name: Install Android SDK
         run: |
           sudo apt-get update
           sudo apt-get install -y openjdk-11-jdk
+          sudo apt-get install -y wget unzip
+          wget https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip
+          unzip commandlinetools-linux-7583922_latest.zip -d $ANDROID_HOME/cmdline-tools
+          export ANDROID_HOME=$HOME/Android/Sdk
+          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/tools/bin
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
