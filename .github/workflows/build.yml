@@ -21,12 +21,13 @@ jobs:
       - name: Install Android SDK
         run: |
           sudo apt-get update
-          sudo apt-get install -y openjdk-11-jdk
-          sudo apt-get install -y wget unzip
+          sudo apt-get install -y openjdk-11-jdk wget unzip
+          export ANDROID_HOME=$HOME/Android/Sdk
+          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
+          mkdir -p $ANDROID_HOME/cmdline-tools
           wget https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip
           unzip commandlinetools-linux-7583922_latest.zip -d $ANDROID_HOME/cmdline-tools
-          export ANDROID_HOME=$HOME/Android/Sdk
-          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/tools/bin
+          mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
