@@ -5,8 +5,8 @@
 
     <application
         android:label="Courier Simulator"
-        android:icon="@drawable/ic_launcher"
-        android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
+        android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
+        android:icon="@mipmap/ic_launcher">
         <activity android:name=".MainActivity"
          android:exported="true">
             <intent-filter>
