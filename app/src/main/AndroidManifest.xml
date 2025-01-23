@@ -5,6 +5,7 @@
 
     <application
         android:label="Courier Simulator"
+        android:icon="@drawable/ic_launcher"
         android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
         <activity android:name=".MainActivity"
          android:exported="true">
