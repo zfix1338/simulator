@@ -11,23 +11,49 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Кнопка "Заказы" (слева внизу) -->
+    <!-- Кнопка "Центрировать" (вверху справа) -->
     <Button
-        android:id="@+id/btnOrders"
+        android:id="@+id/btnCenter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Заказы"
-        android:layout_gravity="bottom|left"
-        android:layout_margin="16dp" />
+        android:text="Центр"
+        android:layout_gravity="top|right"
+        android:layout_margin="16dp"/>
 
-    <!-- Кнопка "Доставить" (справа внизу) -->
-    <Button
-        android:id="@+id/btnDeliver"
-        android:layout_width="wrap_content"
+    <!-- Панель кнопок внизу (LinearLayout) -->
+    <LinearLayout
+        android:id="@+id/bottomPanel"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Доставить"
-        android:layout_gravity="bottom|right"
-        android:layout_margin="16dp"
-        android:enabled="false"/>
+        android:layout_gravity="bottom"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="8dp">
+
+        <!-- Кнопка "Заказы" -->
+        <Button
+            android:id="@+id/btnOrders"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Заказы"
+            android:layout_weight="1"/>
+
+        <!-- Кнопка "Обновить" -->
+        <Button
+            android:id="@+id/btnRefresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Обновить"
+            android:layout_weight="1"/>
+
+        <!-- Кнопка "Доставить" (сначала неактивна) -->
+        <Button
+            android:id="@+id/btnDeliver"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Доставить"
+            android:enabled="false"
+            android:layout_weight="1"/>
+    </LinearLayout>
 
 </FrameLayout>
