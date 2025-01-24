@@ -1,18 +1,35 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.couriersimulator">
 
+    <!-- Разрешения на локацию -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Разрешение на интернет (для подгрузки тайлов) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- 
+         (Необязательно) Разрешение на запись, 
+         если хотите кешировать тайлы во внешнем хранилище 
+    -->
+    <!-- <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/> -->
 
     <application
         android:label="Courier Simulator"
         android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
         android:icon="@mipmap/ic_launcher">
+
         <activity android:name=".MainActivity"
-         android:exported="true">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Добавляем новую активити для карты -->
+        <activity android:name=".MapActivity"
+            android:exported="true" />
+
     </application>
+
 </manifest>

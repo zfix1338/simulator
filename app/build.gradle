@@ -3,8 +3,8 @@ plugins {
 }
 
 android {
-    compileSdkVersion 33
     namespace "com.example.couriersimulator"
+    compileSdkVersion 33
 
     defaultConfig {
         applicationId "com.example.couriersimulator"
@@ -20,10 +20,21 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    // Если используете Java 8+ возможности
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.gms:play-services-maps:18.1.0'
-    implementation 'com.google.android.gms:play-services-location:21.0.1'
+    
+    // ОсMDroid (OpenStreetMap)
+    implementation 'org.osmdroid:osmdroid-android:6.1.11'
+
+    // Удаляем зависимости Google Maps, если больше не нужны:
+    // implementation 'com.google.android.gms:play-services-maps:18.1.0'
+    // implementation 'com.google.android.gms:play-services-location:21.0.1'
 }
