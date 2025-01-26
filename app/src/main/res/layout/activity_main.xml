@@ -5,13 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Карта OSMDroid -->
+    <!-- OSMDroid MapView -->
     <org.osmdroid.views.MapView
         android:id="@+id/map"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Нижняя панель с тремя MaterialButton -->
     <LinearLayout
         android:id="@+id/bottomPanel"
         android:layout_width="match_parent"
@@ -21,36 +20,41 @@
         android:gravity="center"
         android:padding="8dp">
 
+        <!-- Кнопка "Заказы" (Outlined) -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnOrders"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Заказы"
             android:layout_weight="1"
+            android:text="Заказы"
             android:layout_margin="4dp" />
 
+        <!-- Кнопка "Обновить" (Outlined) -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRefresh"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Обновить"
             android:layout_weight="1"
+            android:text="Обновить"
             android:layout_margin="4dp" />
 
-<com.google.android.material.button.MaterialButton
-    android:id="@+id/btnDeliver"
-    style="@style/Widget.MaterialComponents.Button"
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    android:text="Доставить"
-    android:enabled="false"
-    android:layout_weight="1"
-    android:layout_margin="4dp" />
+        <!-- Кнопка "Доставить" (Filled). 
+             Если не найдёт Filled, замените на FilledButton или TonalButton, 
+             что есть в alpha05. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDeliver"
+            style="@style/Widget.Material3.Button.Filled"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Доставить"
+            android:enabled="false"
+            android:layout_margin="4dp" />
     </LinearLayout>
 
-    <!-- FAB для центрирования на пользователе -->
+    <!-- FAB для "Центр" -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnCenter"
         android:layout_width="wrap_content"
@@ -58,6 +62,6 @@
         android:contentDescription="Центрировать"
         android:src="@android:drawable/ic_menu_mylocation"
         android:layout_margin="16dp"
-        android:layout_gravity="bottom|end"/>
+        android:layout_gravity="bottom|end" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout 
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/bottomSheetContainer"
     android:layout_width="match_parent"
@@ -12,12 +12,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Доступные заказы"
-        android:textAppearance="@android:style/TextAppearance.Material.Medium"
         android:paddingBottom="8dp" />
 
     <ListView
         android:id="@+id/lvOrders"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content" />
 
 </LinearLayout>

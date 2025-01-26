@@ -1,2 +1,10 @@
-rootProject.name = 'CourierSimulatorGame'
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = "CourierSimulator"
 include ':app'
