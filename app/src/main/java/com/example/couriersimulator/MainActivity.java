@@ -9,7 +9,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Bundle;
+import android.os.Bundle; 
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,8 +25,8 @@ import org.osmdroid.config.Configuration;
 import org.osmdroid.library.BuildConfig;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint; 
-import org.osmdroid.views.MapView; 
 import org.osmdroid.views.CustomZoomButtonsController;
+import org.osmdroid.views.MapView; 
 import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
@@ -34,6 +34,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Пример Activity:
+ *  - OSMDroid карта
+ *  - Кнопки Material
+ *  - Убран зум +/-
+ *  - BottomSheetDialog (список заказов)
+ *  - Сохранение состояния
+ */
 public class MainActivity extends AppCompatActivity {
 
     private MapView mapView;
@@ -46,18 +54,16 @@ public class MainActivity extends AppCompatActivity {
     private MaterialButton btnRefresh;
     private MaterialButton btnDeliver;
 
-    // Список заказов
     private List<String> orderList = new ArrayList<>();
-    // Текущие координаты заказа
     private GeoPoint currentOrderGeoPoint = null;
     private Marker currentOrderMarker = null;
 
-    // Последняя локация пользователя (для "Центр")
     private double userLat = 0.0;
     private double userLng = 0.0;
 
-    // Радиус спавна (+/- 0.03 ~ 3 км)
+    // Генерация псевдо-случайного заказа ~3 км
     private static final double RANDOM_OFFSET = 0.03;
+    // Радиус, в котором кнопка "Доставить" активируется
     private static final float DELIVERY_RADIUS_METERS = 20f;
 
     private static final int PERMISSION_REQUEST_CODE = 1001;
@@ -65,7 +71,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Инициализация OSMDroid
+
+        // OSMDroid инициализация
         Configuration.getInstance().setUserAgentValue(BuildConfig.APPLICATION_ID);
         Configuration.getInstance().load(
             getApplicationContext(),
@@ -74,12 +81,10 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        // Инициализация UI
+        // Находим View
         mapView = findViewById(R.id.map);
-
-        // Убираем встроенные кнопки +/-
+        // Отключаем стандартные кнопки +/-
         mapView.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.NEVER);
-
         mapView.setTileSource(TileSourceFactory.MAPNIK);
         mapView.setMultiTouchControls(true);
         mapView.getController().setZoom(14.0);
@@ -90,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
         btnDeliver = findViewById(R.id.btnDeliver);
         btnDeliver.setEnabled(false);
 
-        // Слой "синей точки"
+        // Слой с "синей точкой" локации
         myLocationOverlay = new MyLocationNewOverlay(mapView);
         myLocationOverlay.enableMyLocation();
         mapView.getOverlays().add(myLocationOverlay);
@@ -102,8 +107,7 @@ public class MainActivity extends AppCompatActivity {
             public void onLocationChanged(@NonNull Location location) {
                 userLat = location.getLatitude();
                 userLng = location.getLongitude();
-
-                // Если заказ принят, проверяем дистанцию
+                // Если заказ есть, проверяем расстояние
                 if (currentOrderGeoPoint != null) {
                     float dist = distanceBetween(
                             userLat, userLng,
@@ -119,24 +123,27 @@ public class MainActivity extends AppCompatActivity {
 
         checkLocationPermission();
 
-        // Восстанавливаем состояние, если нужно
+        // Восстанавливаем состояние (если переворот экрана)
         if (savedInstanceState != null) {
             restoreStateFromBundle(savedInstanceState);
         } else {
+            // Иначе загружаем начальный список заказов
             loadInitialOrders();
         }
 
+        // Если уже есть заказ, отрисуем метку заново
         if (currentOrderGeoPoint != null) {
             drawOrderMarker(currentOrderGeoPoint, "Текущий заказ");
         }
 
-        // Обработчики
+        // Обработчики кликов
         btnCenter.setOnClickListener(v -> centerMapOnUser());
         btnOrders.setOnClickListener(v -> showOrdersBottomSheet());
         btnRefresh.setOnClickListener(v -> refreshOrders());
         btnDeliver.setOnClickListener(v -> deliverOrder());
     }
 
+    /** Начальные заказы */
     private void loadInitialOrders() {
         orderList.clear();
         orderList.add("Доставка пиццы");
@@ -145,12 +152,14 @@ public class MainActivity extends AppCompatActivity {
         orderList.add("Заказ из аптеки");
     }
 
+    /** "Обновить" — добавляем новые заказы для примера */
     private void refreshOrders() {
         orderList.add("Новая посылка");
         orderList.add("Цветы на праздник");
         Toast.makeText(this, "Список заказов обновлён!", Toast.LENGTH_SHORT).show();
     }
 
+    /** Показать BottomSheetDialog со списком заказов */
     private void showOrdersBottomSheet() {
         if (orderList.isEmpty()) {
             Toast.makeText(this, "Нет доступных заказов", Toast.LENGTH_SHORT).show();
@@ -169,8 +178,10 @@ public class MainActivity extends AppCompatActivity {
         BottomSheetDialog dialog = new BottomSheetDialog(this);
         dialog.setContentView(sheetView);
 
+        // При выборе заказа
         lvOrders.setOnItemClickListener((parent, view, position, id) -> {
             String selected = orderList.get(position);
+            // Удаляем из списка, принимаем заказ
             orderList.remove(position);
             adapter.notifyDataSetChanged();
 
@@ -181,10 +192,11 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    /** Принять заказ, сгенерировать случайную точку рядом с пользователем */
     private void acceptOrderAndSetMarker(String orderName) {
         GeoPoint userLoc = myLocationOverlay.getMyLocation();
         if (userLoc == null) {
-            // fallback, если ещё нет точной локации
+            // Если overlay не знает координаты, fallback на userLat/userLng
             if (userLat == 0 && userLng == 0) {
                 Toast.makeText(this, "Неизвестно текущее положение!", Toast.LENGTH_SHORT).show();
                 return;
@@ -192,17 +204,18 @@ public class MainActivity extends AppCompatActivity {
             userLoc = new GeoPoint(userLat, userLng);
         }
 
-        // Генерация случайной точки в радиусе ~3 км
-        double rLat = (new Random().nextDouble() - 0.5) * (2 * RANDOM_OFFSET);
-        double rLng = (new Random().nextDouble() - 0.5) * (2 * RANDOM_OFFSET);
-        double lat = userLoc.getLatitude() + rLat;
-        double lng = userLoc.getLongitude() + rLng;
+        // Генерация смещения ~3 км
+        double latOffset = (new Random().nextDouble() - 0.5) * (2 * RANDOM_OFFSET);
+        double lngOffset = (new Random().nextDouble() - 0.5) * (2 * RANDOM_OFFSET);
+        double lat = userLoc.getLatitude() + latOffset;
+        double lng = userLoc.getLongitude() + lngOffset;
 
         currentOrderGeoPoint = new GeoPoint(lat, lng);
         drawOrderMarker(currentOrderGeoPoint, "Заказ: " + orderName);
         Toast.makeText(this, "Вы приняли заказ: " + orderName, Toast.LENGTH_SHORT).show();
     }
 
+    /** Поставить/обновить метку заказа на карте */
     private void drawOrderMarker(GeoPoint geoPoint, String title) {
         if (currentOrderMarker != null) {
             mapView.getOverlays().remove(currentOrderMarker);
@@ -213,11 +226,13 @@ public class MainActivity extends AppCompatActivity {
         currentOrderMarker.setTitle(title);
         mapView.getOverlays().add(currentOrderMarker);
 
+        // Центрируем камеру
         mapView.getController().setCenter(geoPoint);
         mapView.getController().setZoom(15.0);
         mapView.invalidate();
     }
 
+    /** Доставка заказа */
     private void deliverOrder() {
         if (currentOrderGeoPoint != null) {
             Toast.makeText(this, "Заказ успешно доставлен!", Toast.LENGTH_SHORT).show();
@@ -231,6 +246,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /** Центрируем карту на пользователя */
     private void centerMapOnUser() {
         if (userLat == 0 && userLng == 0) {
             Toast.makeText(this, "Позиция пользователя неизвестна!", Toast.LENGTH_SHORT).show();
@@ -241,6 +257,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /** Проверяем/запрашиваем разрешения GPS */
     private void checkLocationPermission() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED
@@ -249,8 +266,10 @@ public class MainActivity extends AppCompatActivity {
 
             ActivityCompat.requestPermissions(
                     this,
-                    new String[]{ Manifest.permission.ACCESS_FINE_LOCATION,
-                                  Manifest.permission.ACCESS_COARSE_LOCATION },
+                    new String[]{
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                    },
                     PERMISSION_REQUEST_CODE
             );
         } else {
@@ -258,6 +277,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /** Запуск GPS/сети */
     private void startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED
@@ -298,6 +318,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /** Сохранение состояния (переворот экрана) */
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -314,6 +335,7 @@ public class MainActivity extends AppCompatActivity {
         outState.putDouble("userLng", userLng);
     }
 
+    /** Восстановление состояния */
     private void restoreStateFromBundle(Bundle savedInstanceState) {
         if (savedInstanceState.containsKey("orderList")) {
             List<String> restored = savedInstanceState.getStringArrayList("orderList");
@@ -342,9 +364,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /** Утилита: вычислить дистанцию */
     private float distanceBetween(double lat1, double lon1, double lat2, double lon2) {
         float[] results = new float[1];
-        Location.distanceBetween(lat1, lon1, lat2, lon2, results);
+        android.location.Location.distanceBetween(lat1, lon1, lat2, lon2, results);
         return results[0];
     }
 }

@@ -1,16 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 
+     Важно: 
+     - В корневом элементе указываем ОДНОВРЕМЕННО 
+       xmlns:android="..." и xmlns:app="http://schemas.android.com/apk/res-auto"
+     - Закрываем теги правильно (">" или "/>")
+     - Нет лишних символов 
+-->
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"  <!-- ВАЖНО: namespace для app: -->
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/rootContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Карта OSMDroid -->
     <org.osmdroid.views.MapView
         android:id="@+id/map"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- Нижняя панель кнопок -->
     <LinearLayout
         android:id="@+id/bottomPanel"
         android:layout_width="match_parent"
@@ -20,6 +29,7 @@
         android:gravity="center"
         android:padding="8dp">
 
+        <!-- Кнопка "Заказы" -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnOrders"
             style="@style/Widget.Material3.Button.TonalButton"
@@ -31,6 +41,7 @@
             android:textColor="@android:color/white"
             app:backgroundTint="@android:color/holo_blue_dark" />
 
+        <!-- Кнопка "Обновить" -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRefresh"
             style="@style/Widget.Material3.Button.TonalButton"
@@ -42,6 +53,7 @@
             android:textColor="@android:color/white"
             app:backgroundTint="@android:color/holo_green_dark" />
 
+        <!-- Кнопка "Доставить" -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDeliver"
             style="@style/Widget.Material3.Button.TonalButton"
@@ -55,6 +67,7 @@
             app:backgroundTint="@android:color/holo_orange_dark" />
     </LinearLayout>
 
+    <!-- Плавающая кнопка (FAB) "Центр" -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnCenter"
         android:layout_width="wrap_content"
