@@ -1,0 +1,11 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Основная тема приложения -->
+    <style name="Theme.CourierSimulator" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Цвета статус-бара/навигации можно переопределять при желании -->
+        <item name="android:statusBarColor" tools:targetApi="lollipop">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds" tools:targetApi="lollipop">true</item>
+        <item name="android:navigationBarColor">@android:color/black</item>
+    </style>
+
+</resources>

@@ -11,7 +11,10 @@ android {
         minSdkVersion 26
         targetSdkVersion 33
         versionCode 1
-        versionName "1.0"
+        versionName "2.0"
+
+        // Если нужно Java 1.8+
+        multiDexEnabled true
     }
 
     buildTypes {
@@ -21,7 +24,7 @@ android {
         }
     }
 
-    // Если используете Java 8+ возможности
+    // Поддержка Java 1.8
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -29,12 +32,12 @@ android {
 }
 
 dependencies {
+    // AndroidX
     implementation 'androidx.appcompat:appcompat:1.6.1'
     
-    // ОсMDroid (OpenStreetMap)
-    implementation 'org.osmdroid:osmdroid-android:6.1.11'
+    // Material Design
+    implementation 'com.google.android.material:material:1.9.0'
 
-    // Удаляем зависимости Google Maps, если больше не нужны:
-    // implementation 'com.google.android.gms:play-services-maps:18.1.0'
-    // implementation 'com.google.android.gms:play-services-location:21.0.1'
+    // OSMDroid (OpenStreetMap)
+    implementation 'org.osmdroid:osmdroid-android:6.1.11'
 }
