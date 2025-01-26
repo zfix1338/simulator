@@ -39,15 +39,15 @@
             android:layout_weight="1"
             android:layout_margin="4dp" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnDeliver"
-            style="@style/Widget.Material3.Button.FilledButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Доставить"
-            android:enabled="false"
-            android:layout_weight="1"
-            android:layout_margin="4dp" />
+<com.google.android.material.button.MaterialButton
+    android:id="@+id/btnDeliver"
+    style="@style/Widget.Material3.Button.Filled"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:text="Доставить"
+    android:enabled="false"
+    android:layout_weight="1"
+    android:layout_margin="4dp" />
     </LinearLayout>
 
     <!-- FAB для центрирования на пользователе -->
