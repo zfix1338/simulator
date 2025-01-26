@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"  <!-- ВАЖНО: namespace для app: -->
     android:id="@+id/rootContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -25,10 +26,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Заказы"
             android:layout_margin="4dp"
+            android:text="Заказы"
             android:textColor="@android:color/white"
-            app:backgroundTint="@android:color/holo_blue_light" />
+            app:backgroundTint="@android:color/holo_blue_dark" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRefresh"
@@ -36,10 +37,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Обновить"
             android:layout_margin="4dp"
+            android:text="Обновить"
             android:textColor="@android:color/white"
-            app:backgroundTint="@android:color/holo_green_light" />
+            app:backgroundTint="@android:color/holo_green_dark" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDeliver"
@@ -47,21 +48,21 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:layout_margin="4dp"
             android:text="Доставить"
             android:enabled="false"
-            android:layout_margin="4dp"
             android:textColor="@android:color/white"
-            app:backgroundTint="@android:color/holo_orange_light" />
+            app:backgroundTint="@android:color/holo_orange_dark" />
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnCenter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:contentDescription="Центрировать"
-        android:src="@android:drawable/ic_menu_mylocation"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        android:layout_marginBottom="96dp" />
+        android:layout_marginBottom="90dp"
+        android:contentDescription="Центрировать"
+        android:src="@android:drawable/ic_menu_mylocation" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
