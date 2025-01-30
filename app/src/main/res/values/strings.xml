@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Courier Simulator</string>
+    <string name="collection_title">Коллекция</string>
+    <string name="card_unlocked">Новая карта разблокирована!</string>
+</resources>
