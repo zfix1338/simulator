@@ -20,8 +20,16 @@
         android:orientation="horizontal"
         android:gravity="center"
         android:padding="8dp">
-
-        <!-- "Заказы" -->
+        <!-- colekcia -->
+      <com.google.android.material.button.MaterialButton
+       android:id="@+id/btnCards"
+       style="@style/Widget.Material3.Button.TonalButton"
+       android:layout_width="0dp"
+       android:layout_height="wrap_content"
+       android:layout_weight="1"
+       android:text="Коллекция"
+       app:icon="@drawable/ic_collection" />
+        <!-- Заказы -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnOrders"
             style="@style/Widget.Material3.Button.TonalButton"
@@ -33,7 +41,7 @@
             android:textColor="@android:color/white"
             app:backgroundTint="@android:color/holo_blue_dark" />
 
-        <!-- "Обновить" -->
+        <!-- Обновить -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRefresh"
             style="@style/Widget.Material3.Button.TonalButton"
@@ -45,7 +53,7 @@
             android:textColor="@android:color/white"
             app:backgroundTint="@android:color/holo_green_dark" />
 
-        <!-- "Доставить" -->
+        <!-- Доставить -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDeliver"
             style="@style/Widget.Material3.Button.TonalButton"
@@ -59,7 +67,7 @@
             app:backgroundTint="@android:color/holo_orange_dark" />
     </LinearLayout>
 
-    <!-- FAB "Центр" вверху справа -->
+    <!-- центрирование положения -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnCenter"
         android:layout_width="wrap_content"
