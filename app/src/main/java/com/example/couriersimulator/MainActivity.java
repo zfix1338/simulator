@@ -69,8 +69,8 @@ public class MainActivity extends AppCompatActivity {
         // Конфигурация OSMDroid
         Configuration.getInstance().setUserAgentValue(BuildConfig.APPLICATION_ID);
         Configuration.getInstance().load(
-            getApplicationContext(),
-            PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
+                getApplicationContext(),
+                PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
         );
 
         setContentView(R.layout.activity_main);
@@ -98,6 +98,30 @@ public class MainActivity extends AppCompatActivity {
         // Инициализация системы карточек
         cardManager = CardManager.getInstance(this);
 
+        // Инициализация LocationListener
+        locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(@NonNull Location location) {
+                userLat = location.getLatitude();
+                userLng = location.getLongitude();
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+                // Не требуется для текущей реализации
+            }
+
+            @Override
+            public void onProviderEnabled(@NonNull String provider) {
+                // Не требуется для текущей реализации
+            }
+
+            @Override
+            public void onProviderDisabled(@NonNull String provider) {
+                // Не требуется для текущей реализации
+            }
+        };
+
         // Обработчики кликов
         btnCenter.setOnClickListener(v -> centerMapOnUser());
         btnOrders.setOnClickListener(v -> showOrdersBottomSheet());
@@ -109,7 +133,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Восстановление состояния
         if (savedInstanceState != null) {
-            restoreStateFromBundle(savedInstanceState);
+            // Восстанавливаем широту и долготу
+            userLat = savedInstanceState.getDouble("userLat", 0.0);
+            userLng = savedInstanceState.getDouble("userLng", 0.0);
         } else {
             loadInitialOrders();
         }
@@ -133,23 +159,25 @@ public class MainActivity extends AppCompatActivity {
         rvCards.setLayoutManager(new GridLayoutManager(this, 3));
         rvCards.setAdapter(adapter);
 
-        new BottomSheetDialog(this).setContentView(sheetView).show();
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        dialog.setContentView(sheetView);
+        dialog.show();
     }
 
     /** Генерация списка карточек */
     private List<CollectibleCard> generateCardList() {
         List<CollectibleCard> cards = new ArrayList<>();
         cards.add(new CollectibleCard(
-            "bike_ice", 
-            "Ледяной велосипед",
-            "Создан из вечного льда арктических пустошей",
-            R.drawable.bike_ice
+                "bike_ice",
+                "Ледяной велосипед",
+                "Создан из вечного льда арктических пустошей",
+                R.drawable.bike_ice
         ));
         cards.add(new CollectibleCard(
-            "bike_gold",
-            "Золотой велосипед", 
-            "Покрыт 24-каратным золотом",
-            R.drawable.bike_gold
+                "bike_gold",
+                "Золотой велосипед",
+                "Покрыт 24-каратным золотом",
+                R.drawable.bike_gold
         ));
         return cards;
     }
@@ -167,10 +195,10 @@ public class MainActivity extends AppCompatActivity {
     /** Показать уведомление о новой карте */
     private void showCardUnlockDialog(CollectibleCard card) {
         new AlertDialog.Builder(this)
-            .setTitle("Новая карта!")
-            .setMessage("Вы получили: " + card.getTitle())
-            .setPositiveButton("OK", null)
-            .show();
+                .setTitle("Новая карта!")
+                .setMessage("Вы получили: " + card.getTitle())
+                .setPositiveButton("OK", null)
+                .show();
     }
 
     // ===========================================
@@ -181,10 +209,10 @@ public class MainActivity extends AppCompatActivity {
     private void deliverOrder() {
         if (currentOrderGeoPoint != null) {
             Toast.makeText(this, "Заказ успешно доставлен!", Toast.LENGTH_SHORT).show();
-            
+
             // Новый код: шанс получить карточку
             checkCardDrop();
-            
+
             // Существующий код
             if (currentOrderMarker != null) {
                 mapView.getOverlays().remove(currentOrderMarker);
@@ -221,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
         View sheetView = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_orders, null);
         ListView lvOrders = sheetView.findViewById(R.id.lvOrders);
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>( 
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_list_item_1,
                 orderList
@@ -303,6 +331,29 @@ public class MainActivity extends AppCompatActivity {
                     0f,
                     locationListener
             );
+        }
+    }
+
+    // Обработка результата запроса разрешений
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED) {
+                    locationManager.requestLocationUpdates(
+                            LocationManager.GPS_PROVIDER,
+                            1000,
+                            0f,
+                            locationListener
+                    );
+                }
+            } else {
+                Toast.makeText(this, "Разрешение на доступ к местоположению отклонено!", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
