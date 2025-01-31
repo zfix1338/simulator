@@ -28,7 +28,7 @@
        android:layout_height="wrap_content"
        android:layout_weight="1"
        android:text="Коллекция"
-       app:icon="@drawable/ic_collection" />
+       app:icon="@mipmap/ic_collection" />
         <!-- Заказы -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnOrders"
@@ -76,6 +76,6 @@
         android:layout_margin="16dp"
         android:layout_marginTop="16dp"
         android:contentDescription="Центрировать"
-        android:src="@android:drawable/ic_menu_mylocation" />
+        android:src="@android:mipmap/ic_menu_mylocation" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
