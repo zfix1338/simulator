@@ -3,4 +3,5 @@
     <string name="app_name">Courier Simulator</string>
     <string name="collection_title">Коллекция</string>
     <string name="card_unlocked">Новая карта разблокирована!</string>
+    <string name="card_image">Card image</string>
 </resources>
