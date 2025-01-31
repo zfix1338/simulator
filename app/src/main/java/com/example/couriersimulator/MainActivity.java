@@ -119,11 +119,211 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // ===========================================
+    // НОВЫЕ МЕТОДЫ ДЛЯ КОЛЛЕКЦИОННЫХ КАРТОЧЕК
+    // ===========================================
+
+    /** Открыть коллекцию карточек */
+    private void showCardCollection() {
+        View sheetView = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_collection, null);
+        RecyclerView rvCards = sheetView.findViewById(R.id.rvCards);
+
+        List<CollectibleCard> allCards = generateCardList();
+        CardAdapter adapter = new CardAdapter(allCards, cardManager, this);
+        rvCards.setLayoutManager(new GridLayoutManager(this, 3));
+        rvCards.setAdapter(adapter);
+
+        new BottomSheetDialog(this).setContentView(sheetView).show();
+    }
+
     /** Генерация списка карточек */
     private List<CollectibleCard> generateCardList() {
         List<CollectibleCard> cards = new ArrayList<>();
-        cards.add(new CollectibleCard("bike_ice", "Ледяной велосипед", "Создан из вечного льда", R.mipmap.bike_ice));
-        cards.add(new CollectibleCard("bike_gold", "Золотой велосипед", "Покрыт 24-каратным золотом", R.mipmap.bike_gold));
+        cards.add(new CollectibleCard(
+            "bike_ice", 
+            "Ледяной велосипед",
+            "Создан из вечного льда арктических пустошей",
+            R.drawable.bike_ice
+        ));
+        cards.add(new CollectibleCard(
+            "bike_gold",
+            "Золотой велосипед", 
+            "Покрыт 24-каратным золотом",
+            R.drawable.bike_gold
+        ));
         return cards;
+    }
+
+    /** Проверка выпадения карточки */
+    private void checkCardDrop() {
+        if (new Random().nextDouble() <= 0.25) { // 25% шанс
+            List<CollectibleCard> allCards = generateCardList();
+            CollectibleCard randomCard = allCards.get(new Random().nextInt(allCards.size()));
+            cardManager.unlockCard(randomCard.getId());
+            showCardUnlockDialog(randomCard);
+        }
+    }
+
+    /** Показать уведомление о новой карте */
+    private void showCardUnlockDialog(CollectibleCard card) {
+        new AlertDialog.Builder(this)
+            .setTitle("Новая карта!")
+            .setMessage("Вы получили: " + card.getTitle())
+            .setPositiveButton("OK", null)
+            .show();
+    }
+
+    // ===========================================
+    // СУЩЕСТВУЮЩИЕ МЕТОДЫ С ИЗМЕНЕНИЯМИ
+    // ===========================================
+
+    /** Доставка заказа (обновлено) */
+    private void deliverOrder() {
+        if (currentOrderGeoPoint != null) {
+            Toast.makeText(this, "Заказ успешно доставлен!", Toast.LENGTH_SHORT).show();
+            
+            // Новый код: шанс получить карточку
+            checkCardDrop();
+            
+            // Существующий код
+            if (currentOrderMarker != null) {
+                mapView.getOverlays().remove(currentOrderMarker);
+                currentOrderMarker = null;
+            }
+            currentOrderGeoPoint = null;
+            btnDeliver.setEnabled(false);
+            mapView.invalidate();
+        }
+    }
+
+    /** Начальные заказы */
+    private void loadInitialOrders() {
+        orderList.clear();
+        orderList.add("Доставка пиццы");
+        orderList.add("Доставка документов");
+        orderList.add("Продукты из магазина");
+        orderList.add("Заказ из аптеки");
+    }
+
+    /** "Обновить" — добавляем новые заказы для примера */
+    private void refreshOrders() {
+        orderList.add("Новая посылка");
+        orderList.add("Цветы на праздник");
+        Toast.makeText(this, "Список заказов обновлён!", Toast.LENGTH_SHORT).show();
+    }
+
+    /** Показать BottomSheetDialog со списком заказов */
+    private void showOrdersBottomSheet() {
+        if (orderList.isEmpty()) {
+            Toast.makeText(this, "Нет доступных заказов", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        View sheetView = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_orders, null);
+        ListView lvOrders = sheetView.findViewById(R.id.lvOrders);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>( 
+                this,
+                android.R.layout.simple_list_item_1,
+                orderList
+        );
+        lvOrders.setAdapter(adapter);
+
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        dialog.setContentView(sheetView);
+
+        // При выборе заказа
+        lvOrders.setOnItemClickListener((parent, view, position, id) -> {
+            String selected = orderList.get(position);
+            // Удаляем из списка, принимаем заказ
+            orderList.remove(position);
+            adapter.notifyDataSetChanged();
+
+            acceptOrderAndSetMarker(selected);
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+
+    /** Принять заказ, сгенерировать случайную точку рядом с пользователем */
+    private void acceptOrderAndSetMarker(String orderName) {
+        GeoPoint userLoc = myLocationOverlay.getMyLocation();
+        if (userLoc == null) {
+            // Если overlay не знает координаты, fallback на userLat/userLng
+            if (userLat == 0 && userLng == 0) {
+                Toast.makeText(this, "Неизвестно текущее положение!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            userLoc = new GeoPoint(userLat, userLng);
+        }
+
+        currentOrderGeoPoint = new GeoPoint(
+                userLoc.getLatitude() + RANDOM_OFFSET * (new Random().nextDouble() - 0.5),
+                userLoc.getLongitude() + RANDOM_OFFSET * (new Random().nextDouble() - 0.5)
+        );
+        drawOrderMarker(currentOrderGeoPoint, orderName);
+        btnDeliver.setEnabled(true);
+    }
+
+    /** Отобразить маркер с заказом */
+    private void drawOrderMarker(GeoPoint geoPoint, String title) {
+        currentOrderMarker = new Marker(mapView);
+        currentOrderMarker.setPosition(geoPoint);
+        currentOrderMarker.setTitle(title);
+        mapView.getOverlays().add(currentOrderMarker);
+        mapView.invalidate();
+    }
+
+    /** Центрировать карту на текущем местоположении пользователя */
+    private void centerMapOnUser() {
+        if (myLocationOverlay.getMyLocation() != null) {
+            mapView.getController().animateTo(myLocationOverlay.getMyLocation());
+        }
+    }
+
+    // ===========================================
+    // МЕТОДЫ ОБРАБОТКИ РАЗРЕШЕНИЙ НА GPS
+    // ===========================================
+
+    /** Проверка разрешений на использование GPS */
+    private void checkLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSION_REQUEST_CODE
+            );
+        } else {
+            locationManager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER,
+                    1000,
+                    0f,
+                    locationListener
+            );
+        }
+    }
+
+    // ===========================================
+    // СОХРАНЕНИЕ СТАНА И ВОССТАНОВЛЕНИЕ
+    // ===========================================
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // Сохраняем состояние карты
+        outState.putDouble("userLat", userLat);
+        outState.putDouble("userLng", userLng);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (savedInstanceState != null) {
+            userLat = savedInstanceState.getDouble("userLat", 0.0);
+            userLng = savedInstanceState.getDouble("userLng", 0.0);
+        }
     }
 }

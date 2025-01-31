@@ -28,7 +28,7 @@
        android:layout_height="wrap_content"
        android:layout_weight="1"
        android:text="Коллекция"
-       app:icon="@mipmap/ic_collection" />
+       app:icon="@drawable/ic_collection" />
         <!-- Заказы -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnOrders"
