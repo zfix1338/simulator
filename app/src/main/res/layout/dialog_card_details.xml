@@ -1,36 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<LinearLayout 
     xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dialogCardDetails"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="16dp">
 
     <ImageView
-        android:id="@+id/imgCardDetail"
-        android:layout_width="120dp"
-        android:layout_height="160dp"
-        android:layout_gravity="center"
-        android:scaleType="centerCrop" />
+        android:id="@+id/ivCardLargeImage"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
+        android:contentDescription="Card large image"/>
 
     <TextView
-        android:id="@+id/tvTitleDetail"
+        android:id="@+id/tvCardLargeName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:text="Название"
         android:textSize="18sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:layout_marginTop="8dp"/>
 
-    <ScrollView
+    <TextView
+        android:id="@+id/tvCardLargeDescription"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
-        android:layout_marginTop="8dp">
+        android:layout_height="wrap_content"
+        android:text="Описание"
+        android:layout_marginTop="4dp"/>
 
-        <TextView
-            android:id="@+id/tvLoreDetail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="14sp" />
-    </ScrollView>
-
+    <TextView
+        android:id="@+id/tvCardOwnershipNote"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Статус владения"
+        android:textColor="#FF0000"
+        android:layout_marginTop="8dp"/>
 </LinearLayout>

@@ -1,14 +1,11 @@
 package com.example.couriersimulator;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
-import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -21,6 +18,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.example.couriersimulator.cards.CardManager;            // <-- Наш менеджер карточек
+import com.example.couriersimulator.cards.CollectibleCard;       // <-- Модель карточки (при необходимости)
+import com.example.couriersimulator.R;                           // <-- Ссылка на ресурсы
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -40,33 +40,36 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
-    // Существующие поля
     private MapView mapView;
     private MyLocationNewOverlay myLocationOverlay;
     private LocationManager locationManager;
     private LocationListener locationListener;
+
     private FloatingActionButton btnCenter;
     private MaterialButton btnOrders;
     private MaterialButton btnRefresh;
     private MaterialButton btnDeliver;
-    private MaterialButton btnCards; // Новая кнопка коллекции
+    private MaterialButton btnCollection; // <- Новая кнопка "Коллекция"
+
     private List<String> orderList = new ArrayList<>();
     private GeoPoint currentOrderGeoPoint = null;
     private Marker currentOrderMarker = null;
+
     private double userLat = 0.0;
     private double userLng = 0.0;
-    private static final double RANDOM_OFFSET = 0.03;
-    private static final float DELIVERY_RADIUS_METERS = 20f;
-    private static final int PERMISSION_REQUEST_CODE = 1001;
 
-    // Новые поля для карточек
-    private CardManager cardManager;
+    // Генерация псевдо-случайного заказа ~3 км
+    private static final double RANDOM_OFFSET = 0.03;
+    // Радиус, в котором кнопка "Доставить" активируется
+    private static final float DELIVERY_RADIUS_METERS = 20f;
+
+    private static final int PERMISSION_REQUEST_CODE = 1001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Конфигурация OSMDroid
+        // Инициализация OSMDroid
         Configuration.getInstance().setUserAgentValue(BuildConfig.APPLICATION_ID);
         Configuration.getInstance().load(
                 getApplicationContext(),
@@ -75,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        // Инициализация элементов
+        // Инициализируем элементы UI
         mapView = findViewById(R.id.map);
         mapView.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.NEVER);
         mapView.setTileSource(TileSourceFactory.MAPNIK);
@@ -86,142 +89,62 @@ public class MainActivity extends AppCompatActivity {
         btnOrders = findViewById(R.id.btnOrders);
         btnRefresh = findViewById(R.id.btnRefresh);
         btnDeliver = findViewById(R.id.btnDeliver);
-        btnCards = findViewById(R.id.btnCards); // Новая кнопка
         btnDeliver.setEnabled(false);
 
-        // Инициализация карт и GPS
+        // Новая кнопка для коллекции
+        btnCollection = findViewById(R.id.btnCollection);
+        btnCollection.setOnClickListener(v -> {
+            // Переход в экран "CollectionCardsActivity"
+            Intent intent = new Intent(MainActivity.this, CollectionCardsActivity.class);
+            startActivity(intent);
+        });
+
+        // Слой с "синей точкой" локации
         myLocationOverlay = new MyLocationNewOverlay(mapView);
         myLocationOverlay.enableMyLocation();
         mapView.getOverlays().add(myLocationOverlay);
+
+        // Локация (GPS)
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-
-        // Инициализация системы карточек
-        cardManager = CardManager.getInstance(this);
-
-        // Инициализация LocationListener
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(@NonNull Location location) {
                 userLat = location.getLatitude();
                 userLng = location.getLongitude();
+                // Если есть текущий заказ, проверяем расстояние
+                if (currentOrderGeoPoint != null) {
+                    float dist = distanceBetween(
+                            userLat, userLng,
+                            currentOrderGeoPoint.getLatitude(), currentOrderGeoPoint.getLongitude()
+                    );
+                    btnDeliver.setEnabled(dist <= DELIVERY_RADIUS_METERS);
+                }
             }
-
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-                // Не требуется для текущей реализации
-            }
-
-            @Override
-            public void onProviderEnabled(@NonNull String provider) {
-                // Не требуется для текущей реализации
-            }
-
-            @Override
-            public void onProviderDisabled(@NonNull String provider) {
-                // Не требуется для текущей реализации
-            }
+            @Override public void onProviderEnabled(@NonNull String provider) {}
+            @Override public void onProviderDisabled(@NonNull String provider) {}
+            @Override public void onStatusChanged(String provider, int status, Bundle extras) {}
         };
+
+        checkLocationPermission();
+
+        // Восстанавливаем состояние (если переворот экрана)
+        if (savedInstanceState != null) {
+            restoreStateFromBundle(savedInstanceState);
+        } else {
+            // Иначе загружаем начальный список заказов
+            loadInitialOrders();
+        }
+
+        // Если уже есть заказ, отрисуем метку заново
+        if (currentOrderGeoPoint != null) {
+            drawOrderMarker(currentOrderGeoPoint, "Текущий заказ");
+        }
 
         // Обработчики кликов
         btnCenter.setOnClickListener(v -> centerMapOnUser());
         btnOrders.setOnClickListener(v -> showOrdersBottomSheet());
         btnRefresh.setOnClickListener(v -> refreshOrders());
         btnDeliver.setOnClickListener(v -> deliverOrder());
-        btnCards.setOnClickListener(v -> showCardCollection()); // Новый обработчик
-
-        checkLocationPermission();
-
-        // Восстановление состояния
-        if (savedInstanceState != null) {
-            // Восстанавливаем широту и долготу
-            userLat = savedInstanceState.getDouble("userLat", 0.0);
-            userLng = savedInstanceState.getDouble("userLng", 0.0);
-        } else {
-            loadInitialOrders();
-        }
-
-        if (currentOrderGeoPoint != null) {
-            drawOrderMarker(currentOrderGeoPoint, "Текущий заказ");
-        }
-    }
-
-    // ===========================================
-    // НОВЫЕ МЕТОДЫ ДЛЯ КОЛЛЕКЦИОННЫХ КАРТОЧЕК
-    // ===========================================
-
-    /** Открыть коллекцию карточек */
-    private void showCardCollection() {
-        View sheetView = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_collection, null);
-        RecyclerView rvCards = sheetView.findViewById(R.id.rvCards);
-
-        List<CollectibleCard> allCards = generateCardList();
-        CardAdapter adapter = new CardAdapter(allCards, cardManager, this);
-        rvCards.setLayoutManager(new GridLayoutManager(this, 3));
-        rvCards.setAdapter(adapter);
-
-        BottomSheetDialog dialog = new BottomSheetDialog(this);
-        dialog.setContentView(sheetView);
-        dialog.show();
-    }
-
-    /** Генерация списка карточек */
-    private List<CollectibleCard> generateCardList() {
-        List<CollectibleCard> cards = new ArrayList<>();
-        cards.add(new CollectibleCard(
-                "bike_ice",
-                "Ледяной велосипед",
-                "Создан из вечного льда арктических пустошей",
-                R.drawable.bike_ice
-        ));
-        cards.add(new CollectibleCard(
-                "bike_gold",
-                "Золотой велосипед",
-                "Покрыт 24-каратным золотом",
-                R.drawable.bike_gold
-        ));
-        return cards;
-    }
-
-    /** Проверка выпадения карточки */
-    private void checkCardDrop() {
-        if (new Random().nextDouble() <= 0.25) { // 25% шанс
-            List<CollectibleCard> allCards = generateCardList();
-            CollectibleCard randomCard = allCards.get(new Random().nextInt(allCards.size()));
-            cardManager.unlockCard(randomCard.getId());
-            showCardUnlockDialog(randomCard);
-        }
-    }
-
-    /** Показать уведомление о новой карте */
-    private void showCardUnlockDialog(CollectibleCard card) {
-        new AlertDialog.Builder(this)
-                .setTitle("Новая карта!")
-                .setMessage("Вы получили: " + card.getTitle())
-                .setPositiveButton("OK", null)
-                .show();
-    }
-
-    // ===========================================
-    // СУЩЕСТВУЮЩИЕ МЕТОДЫ С ИЗМЕНЕНИЯМИ
-    // ===========================================
-
-    /** Доставка заказа (обновлено) */
-    private void deliverOrder() {
-        if (currentOrderGeoPoint != null) {
-            Toast.makeText(this, "Заказ успешно доставлен!", Toast.LENGTH_SHORT).show();
-
-            // Новый код: шанс получить карточку
-            checkCardDrop();
-
-            // Существующий код
-            if (currentOrderMarker != null) {
-                mapView.getOverlays().remove(currentOrderMarker);
-                currentOrderMarker = null;
-            }
-            currentOrderGeoPoint = null;
-            btnDeliver.setEnabled(false);
-            mapView.invalidate();
-        }
     }
 
     /** Начальные заказы */
@@ -285,96 +208,204 @@ public class MainActivity extends AppCompatActivity {
             userLoc = new GeoPoint(userLat, userLng);
         }
 
-        currentOrderGeoPoint = new GeoPoint(
-                userLoc.getLatitude() + RANDOM_OFFSET * (new Random().nextDouble() - 0.5),
-                userLoc.getLongitude() + RANDOM_OFFSET * (new Random().nextDouble() - 0.5)
-        );
-        drawOrderMarker(currentOrderGeoPoint, orderName);
-        btnDeliver.setEnabled(true);
+        // Генерация смещения ~3 км
+        double latOffset = (new Random().nextDouble() - 0.5) * (2 * RANDOM_OFFSET);
+        double lngOffset = (new Random().nextDouble() - 0.5) * (2 * RANDOM_OFFSET);
+        double lat = userLoc.getLatitude() + latOffset;
+        double lng = userLoc.getLongitude() + lngOffset;
+
+        currentOrderGeoPoint = new GeoPoint(lat, lng);
+        drawOrderMarker(currentOrderGeoPoint, "Заказ: " + orderName);
+        Toast.makeText(this, "Вы приняли заказ: " + orderName, Toast.LENGTH_SHORT).show();
     }
 
-    /** Отобразить маркер с заказом */
+    /** Поставить/обновить метку заказа на карте */
     private void drawOrderMarker(GeoPoint geoPoint, String title) {
+        if (currentOrderMarker != null) {
+            mapView.getOverlays().remove(currentOrderMarker);
+        }
         currentOrderMarker = new Marker(mapView);
         currentOrderMarker.setPosition(geoPoint);
+        currentOrderMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         currentOrderMarker.setTitle(title);
         mapView.getOverlays().add(currentOrderMarker);
+
+        // Центрируем камеру
+        mapView.getController().setCenter(geoPoint);
+        mapView.getController().setZoom(15.0);
         mapView.invalidate();
     }
 
-    /** Центрировать карту на текущем местоположении пользователя */
-    private void centerMapOnUser() {
-        if (myLocationOverlay.getMyLocation() != null) {
-            mapView.getController().animateTo(myLocationOverlay.getMyLocation());
+    /** Доставка заказа */
+    private void deliverOrder() {
+        if (currentOrderGeoPoint != null) {
+            Toast.makeText(this, "Заказ успешно доставлен!", Toast.LENGTH_SHORT).show();
+            if (currentOrderMarker != null) {
+                mapView.getOverlays().remove(currentOrderMarker);
+                currentOrderMarker = null;
+            }
+            currentOrderGeoPoint = null;
+            btnDeliver.setEnabled(false);
+            mapView.invalidate();
+
+            // Пример: Случайная выдача карточки (если хотите геймификацию)
+            maybeAwardCard();
         }
     }
 
-    // ===========================================
-    // МЕТОДЫ ОБРАБОТКИ РАЗРЕШЕНИЙ НА GPS
-    // ===========================================
+    /**
+     * Пример метода: случайным образом "выдаём" карточку из нашего списка при доставке.
+     * Вы можете настроить вероятность и т.д. по своему желанию.
+     */
+    private void maybeAwardCard() {
+        double chance = 0.4; // 40% шанс, что вообще что-то выпадет
+        if (Math.random() > chance) {
+            return; // Ничего не выпало
+        }
+        // Получаем все карточки (которые уже сохранены в CardManager)
+        List<CollectibleCard> allCards = CardManager.getAllCards(this);
+        // Фильтруем те, которыми пользователь не владеет
+        List<CollectibleCard> notOwned = new ArrayList<>();
+        for (CollectibleCard c : allCards) {
+            if (!c.isOwned()) {
+                notOwned.add(c);
+            }
+        }
+        if (notOwned.isEmpty()) {
+            // Все уже собраны
+            Toast.makeText(this, "Все карточки уже собраны! Ничего не выпадает.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        // Случайно выбираем одну из несобранных
+        CollectibleCard randomCard = notOwned.get(new Random().nextInt(notOwned.size()));
+        // Помечаем её как собранную
+        CardManager.setCardOwned(this, randomCard.getId(), true);
+        // Уведомляем пользователя
+        Toast.makeText(this, "Вы получили новую карточку: " + randomCard.getName(), Toast.LENGTH_LONG).show();
+    }
 
-    /** Проверка разрешений на использование GPS */
+    /** Центрируем карту на пользователя */
+    private void centerMapOnUser() {
+        if (userLat == 0 && userLng == 0) {
+            Toast.makeText(this, "Позиция пользователя неизвестна!", Toast.LENGTH_SHORT).show();
+        } else {
+            GeoPoint userGeo = new GeoPoint(userLat, userLng);
+            mapView.getController().animateTo(userGeo);
+            mapView.getController().setZoom(15.0);
+        }
+    }
+
+    /** Проверка GPS-разрешений */
     private void checkLocationPermission() {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-        ) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+            && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
             ActivityCompat.requestPermissions(
                     this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    new String[]{
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                    },
                     PERMISSION_REQUEST_CODE
             );
         } else {
-            locationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER,
-                    1000,
-                    0f,
-                    locationListener
-            );
+            startLocationUpdates();
         }
     }
 
-    // Обработка результата запроса разрешений
+    /** Запуск GPS */
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED
+            || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+
+            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                locationManager.requestLocationUpdates(
+                        LocationManager.GPS_PROVIDER,
+                        3000,
+                        1,
+                        locationListener
+                );
+            }
+            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                locationManager.requestLocationUpdates(
+                        LocationManager.NETWORK_PROVIDER,
+                        3000,
+                        1,
+                        locationListener
+                );
+            }
+        }
+    }
+
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                        == PackageManager.PERMISSION_GRANTED) {
-                    locationManager.requestLocationUpdates(
-                            LocationManager.GPS_PROVIDER,
-                            1000,
-                            0f,
-                            locationListener
-                    );
-                }
+                startLocationUpdates();
             } else {
-                Toast.makeText(this, "Разрешение на доступ к местоположению отклонено!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Нет разрешений на локацию", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    // ===========================================
-    // СОХРАНЕНИЕ СТАНА И ВОССТАНОВЛЕНИЕ
-    // ===========================================
-
+    /** Сохранение состояния (при перевороте экрана) */
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        // Сохраняем состояние карты
+
+        outState.putStringArrayList("orderList", new ArrayList<>(orderList));
+        if (currentOrderGeoPoint != null) {
+            outState.putBoolean("hasOrder", true);
+            outState.putDouble("orderLat", currentOrderGeoPoint.getLatitude());
+            outState.putDouble("orderLng", currentOrderGeoPoint.getLongitude());
+        } else {
+            outState.putBoolean("hasOrder", false);
+        }
         outState.putDouble("userLat", userLat);
         outState.putDouble("userLng", userLng);
     }
 
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        if (savedInstanceState != null) {
-            userLat = savedInstanceState.getDouble("userLat", 0.0);
-            userLng = savedInstanceState.getDouble("userLng", 0.0);
+    /** Восстановление состояния */
+    private void restoreStateFromBundle(Bundle savedInstanceState) {
+        if (savedInstanceState.containsKey("orderList")) {
+            List<String> restored = savedInstanceState.getStringArrayList("orderList");
+            if (restored != null) {
+                orderList.clear();
+                orderList.addAll(restored);
+            }
         }
+        boolean hasOrder = savedInstanceState.getBoolean("hasOrder", false);
+        if (hasOrder) {
+            double lat = savedInstanceState.getDouble("orderLat", 0.0);
+            double lng = savedInstanceState.getDouble("orderLng", 0.0);
+            currentOrderGeoPoint = new GeoPoint(lat, lng);
+        } else {
+            currentOrderGeoPoint = null;
+        }
+        userLat = savedInstanceState.getDouble("userLat", 0.0);
+        userLng = savedInstanceState.getDouble("userLng", 0.0);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (locationManager != null && locationListener != null) {
+            locationManager.removeUpdates(locationListener);
+        }
+    }
+
+    /** Утилита: вычислить дистанцию между двумя точками (метры) */
+    private float distanceBetween(double lat1, double lon1, double lat2, double lon2) {
+        float[] results = new float[1];
+        android.location.Location.distanceBetween(lat1, lon1, lat2, lon2, results);
+        return results[0];
     }
 }

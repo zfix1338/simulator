@@ -1,7 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Courier Simulator</string>
-    <string name="collection_title">Коллекция</string>
-    <string name="card_unlocked">Новая карта разблокирована!</string>
     <string name="card_image">Card image</string>
+    <string name="card_image_detail">Card image detail</string>
+    <string name="btn_cards">Коллекция</string>
+    <string name="btn_orders">Заказы</string>
+    <string name="btn_refresh">Обновить</string>
+    <string name="btn_deliver">Доставить</string>
+    <string name="btn_center">Центрировать</string>
+    <!-- Добавьте другие строки при необходимости -->
 </resources>
