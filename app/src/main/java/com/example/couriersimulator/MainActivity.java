@@ -20,7 +20,7 @@ import android.widget.Toast;
 
 import com.example.couriersimulator.cards.CardManager;            // <-- Наш менеджер карточек
 import com.example.couriersimulator.cards.CollectibleCard;       // <-- Модель карточки (при необходимости)
-import com.example.couriersimulator.R;                           // <-- Ссылка на ресурсы
+import com.example.couriersimulator.R;                           // <-- Ссылка на ресурсы c
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
