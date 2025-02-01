@@ -17,9 +17,13 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-                <activity android:name=".CollectionCardsActivity" />
             </intent-filter>
         </activity>
-
+         
+         <!-- Вторая активити (Экран коллекции) --> 
+        <activity
+            android:name=".CollectionCardsActivity"
+            android:exported="true"/>
+            
     </application>
 </manifest>
