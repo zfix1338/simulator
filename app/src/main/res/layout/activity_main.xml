@@ -12,73 +12,74 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Нижняя панель кнопок -->
+    <!-- Панель кнопок снизу -->
     <LinearLayout
         android:id="@+id/bottomPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:gravity="center"
         android:orientation="horizontal"
+        android:gravity="center"
         android:padding="8dp">
 
-        <!-- Кнопка: Коллекция -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCards"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="4dp"
-            android:layout_weight="1"
-            android:text="Коллекция"
-            app:icon="@drawable/ic_collection" />
-
-        <!-- Кнопка: Заказы -->
+        <!-- Заказы -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnOrders"
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_margin="4dp"
             android:layout_weight="1"
+            android:layout_margin="4dp"
             android:text="Заказы"
             android:textColor="@android:color/white"
             app:backgroundTint="@android:color/holo_blue_dark" />
 
-        <!-- Кнопка: Обновить -->
+        <!-- Обновить -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRefresh"
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_margin="4dp"
             android:layout_weight="1"
+            android:layout_margin="4dp"
             android:text="Обновить"
             android:textColor="@android:color/white"
             app:backgroundTint="@android:color/holo_green_dark" />
 
-        <!-- Кнопка: Доставить -->
+        <!-- Доставить -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDeliver"
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_margin="4dp"
             android:layout_weight="1"
-            android:enabled="false"
+            android:layout_margin="4dp"
             android:text="Доставить"
+            android:enabled="false"
             android:textColor="@android:color/white"
             app:backgroundTint="@android:color/holo_orange_dark" />
+
+        <!-- Кнопка Коллекция -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCollection"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_margin="4dp"
+            android:text="Коллекция"
+            android:textColor="@android:color/white"
+            app:backgroundTint="@android:color/holo_purple" />
+
     </LinearLayout>
 
-    <!-- FAB для центрирования карты -->
+    <!-- Кнопка центрирования карты (float) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnCenter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|end"
         android:layout_margin="16dp"
-        android:src="@android:drawable/ic_menu_mylocation"
-        android:contentDescription="Центрировать" />
+        android:src="@android:drawable/ic_menu_mylocation" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
