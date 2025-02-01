@@ -11,6 +11,7 @@
         android:id="@+id/ivCardThumbnail"
         android:layout_width="64dp"
         android:layout_height="64dp"
+        android:src="@drawable/icy_bike"
         android:contentDescription="Card thumbnail" />
 
     <LinearLayout
